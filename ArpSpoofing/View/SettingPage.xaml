@@ -1,0 +1,34 @@
+<Page
+    x:Class="ArpSpoofing.View.SettingPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:ArpSpoofing.View"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    xmlns:labs="using:CommunityToolkit.Labs.WinUI"
+    xmlns:viewmodels="using:ArpSpoofing.ViewModels" 
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Page.Resources>
+        <x:Double x:Key="SettingsCardSpacing">3</x:Double>
+    </Page.Resources>
+
+    <ScrollViewer>
+        <StackPanel Spacing="{StaticResource SettingsCardSpacing}">
+            <labs:SettingsExpander Header="网卡选择">
+                <ComboBox ItemsSource="{x:Bind viewmodels:SettingViewModel.GetLibPcapLiveDevices()}"
+                          SelectedItem="{x:Bind ViewModel.SelectNetCard,Mode=TwoWay}"/>
+                <labs:SettingsExpander.Items>
+                    <labs:SettingsCard ContentAlignment="Left">
+                        <StackPanel>
+                            <TextBlock Text="{x:Bind ViewModel.LocalIP,Mode=OneWay}" />
+                            <TextBlock Text="{x:Bind ViewModel.LocalMac,Mode=OneWay}" />
+                        </StackPanel>
+                    </labs:SettingsCard>
+
+                </labs:SettingsExpander.Items>
+            </labs:SettingsExpander>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

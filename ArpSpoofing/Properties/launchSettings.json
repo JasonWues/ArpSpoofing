@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "ArpSpoofing (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "ArpSpoofing (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
