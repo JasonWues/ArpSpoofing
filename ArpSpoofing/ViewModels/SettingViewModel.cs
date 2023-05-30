@@ -1,13 +1,16 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Microsoft.UI.Xaml.Controls;
 using PacketDotNet;
 using SharpPcap;
 using SharpPcap.LibPcap;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
-using System.Threading;
+using System.Threading.Tasks;
 
 namespace ArpSpoofing.ViewModels
 {
@@ -31,6 +34,21 @@ namespace ArpSpoofing.ViewModels
 
         [ObservableProperty]
         private PhysicalAddress gatewayMac;
+
+        [RelayCommand]
+        private async Task Load()
+        {
+            if (LibPcapLiveDeviceList.Instance.Count < 0)
+            {
+                ContentDialog dialog = new ContentDialog();
+
+                dialog.Title = "错误";
+                dialog.Content = "网卡数量不足";
+                dialog.XamlRoot = App.MainRoot.XamlRoot;
+
+                await dialog.ShowAsync();
+            }
+        }
 
         partial void OnSelectNetStrChanged(string value)
         {
@@ -69,7 +87,7 @@ namespace ArpSpoofing.ViewModels
             ArpPacket arpPacket = null;
             var timeoutDateTime = DateTimeOffset.Now + _timeout;
 
-            while(DateTimeOffset.Now < timeoutDateTime)
+            while (DateTimeOffset.Now < timeoutDateTime)
             {
                 if (requestInterval < (DateTimeOffset.Now - lastRequestTime))
                 {
@@ -77,16 +95,16 @@ namespace ArpSpoofing.ViewModels
                     lastRequestTime = DateTimeOffset.Now;
                 }
 
-                if(selectNetCard.GetNextPacket(out var packet) > 0)
+                if (selectNetCard.GetNextPacket(out var packet) > 0)
                 {
-                    if(packet.Device.LinkType != LinkLayers.Ethernet)
+                    if (packet.Device.LinkType != LinkLayers.Ethernet)
                     {
                         continue;
                     }
 
-                    var pack = Packet.ParsePacket(packet.Device.LinkType,packet.Data.ToArray());
+                    var pack = Packet.ParsePacket(packet.Device.LinkType, packet.Data.ToArray());
                     arpPacket = pack.Extract<ArpPacket>();
-                    if(arpPacket == null )
+                    if (arpPacket == null)
                     {
                         continue;
                     }
@@ -111,9 +129,23 @@ namespace ArpSpoofing.ViewModels
             return ethernetPacket;
         }
 
-        public static IReadOnlyCollection<string> GetLibPcapLiveDevices()
+        public IReadOnlyCollection<string> GetLibPcapLiveDevices()
         {
             return LibPcapLiveDeviceList.Instance.Select(x => x.Interface.FriendlyName).ToList();
+        }
+
+        public string PhysicalToString(PhysicalAddress macAddress)
+        {
+            if (macAddress == null)
+            {
+                return null;
+            }
+
+            var bytes = macAddress.GetAddressBytes();
+
+            var mac = $"{bytes[0]:X2}-{bytes[1]:X2}-{bytes[2]:X2}-{bytes[3]:X2}-{bytes[4]:X2}-{bytes[5]:X2}";
+
+            return mac;
         }
     }
 }

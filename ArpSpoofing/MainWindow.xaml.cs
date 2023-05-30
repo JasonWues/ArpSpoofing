@@ -19,12 +19,20 @@ namespace ArpSpoofing
             {
                 switch (item.Tag)
                 {
+                    case "Arp":
+                        contentFrame.Navigate(typeof(ArpPage));
+                        break;
                     case "Settings":
                         contentFrame.Navigate(typeof(SettingPage));
                         break;
                 }
             }
 
+        }
+
+        private void MainNav_Loaded(object sender, RoutedEventArgs e)
+        {
+            MainNav.SelectedItem = MainNav.MenuItems[0];
         }
     }
 }

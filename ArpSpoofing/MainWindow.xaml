@@ -7,9 +7,11 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <NavigationView x:Name="MainNav" SelectionChanged="MainNav_SelectionChanged">
+    <NavigationView x:Name="MainNav" 
+                    SelectionChanged="MainNav_SelectionChanged"
+                    Loaded="MainNav_Loaded">
         <NavigationView.MenuItems>
-            <NavigationViewItem Icon="Play" Content="Arp" Tag="ArpPage" />
+            <NavigationViewItem Icon="Play" Content="Arp" Tag="Arp" />
             <NavigationViewItem Icon="Save" Content="Menu Item2" Tag="SamplePage2" />
             <NavigationViewItem Icon="Refresh" Content="Menu Item3" Tag="SamplePage3" />
             <NavigationViewItem Icon="Download" Content="Menu Item4" Tag="SamplePage4" />
