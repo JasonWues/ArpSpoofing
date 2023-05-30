@@ -12,19 +12,34 @@
 
     <Page.Resources>
         <x:Double x:Key="SettingsCardSpacing">3</x:Double>
+        
     </Page.Resources>
 
     <ScrollViewer>
         <StackPanel Spacing="{StaticResource SettingsCardSpacing}">
             <labs:SettingsExpander Header="网卡选择">
+                <labs:SettingsExpander.HeaderIcon>
+                    <FontIcon Glyph="&#xF211;" />
+                </labs:SettingsExpander.HeaderIcon>
                 <ComboBox ItemsSource="{x:Bind viewmodels:SettingViewModel.GetLibPcapLiveDevices()}"
-                          SelectedItem="{x:Bind ViewModel.SelectNetCard,Mode=TwoWay}"/>
+                          SelectedItem="{x:Bind ViewModel.SelectNetStr,Mode=TwoWay}"/>
                 <labs:SettingsExpander.Items>
                     <labs:SettingsCard ContentAlignment="Left">
-                        <StackPanel>
-                            <TextBlock Text="{x:Bind ViewModel.LocalIP,Mode=OneWay}" />
-                            <TextBlock Text="{x:Bind ViewModel.LocalMac,Mode=OneWay}" />
+                        <StackPanel Orientation="Horizontal" Spacing="30">
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="本机IP" Style="{StaticResource BodyTextBlockStyle}" Foreground="{StaticResource TextFillColorPrimaryBrush}"/>
+                                <TextBlock Text="本机MAC" Style="{StaticResource BodyTextBlockStyle}" Foreground="{StaticResource TextFillColorPrimaryBrush}"/>
+                                <TextBlock Text="网关IP" Style="{StaticResource BodyTextBlockStyle}" Foreground="{StaticResource TextFillColorPrimaryBrush}"/>
+                                <TextBlock Text="网关MAC" Style="{StaticResource BodyTextBlockStyle}" Foreground="{StaticResource TextFillColorPrimaryBrush}"/>
+                            </StackPanel>
+                            <StackPanel Spacing="2">
+                                <TextBlock Style="{StaticResource BodyTextBlockStyle}" Foreground="{StaticResource TextFillColorSecondaryBrush}" IsTextSelectionEnabled="True" Text="{x:Bind ViewModel.LocalIP.ToString(),Mode=OneWay}" />
+                                <TextBlock Style="{StaticResource BodyTextBlockStyle}" Foreground="{StaticResource TextFillColorSecondaryBrush}" IsTextSelectionEnabled="True" Text="{x:Bind ViewModel.LocalMac.ToString(),Mode=OneWay}" />
+                                <TextBlock Style="{StaticResource BodyTextBlockStyle}" Foreground="{StaticResource TextFillColorSecondaryBrush}" IsTextSelectionEnabled="True" Text="{x:Bind ViewModel.GatewayIp.ToString(),Mode=OneWay}" />
+                                <TextBlock Style="{StaticResource BodyTextBlockStyle}" Foreground="{StaticResource TextFillColorSecondaryBrush}" IsTextSelectionEnabled="True" Text="{x:Bind ViewModel.GatewayMac.ToString(),Mode=OneWay}" />
+                            </StackPanel>
                         </StackPanel>
+
                     </labs:SettingsCard>
 
                 </labs:SettingsExpander.Items>

@@ -1,48 +1,119 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using PacketDotNet;
+using SharpPcap;
 using SharpPcap.LibPcap;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Threading;
 
 namespace ArpSpoofing.ViewModels
 {
     public partial class SettingViewModel : ObservableObject
     {
-        [ObservableProperty]
-        private string selectNetCard;
+        private readonly TimeSpan _timeout = new(0, 0, 2);
 
         [ObservableProperty]
-        private string localIP;
+        private string selectNetStr;
+
+        private LibPcapLiveDevice selectNetCard;
 
         [ObservableProperty]
-        private string localMac;
+        private IPAddress localIP;
 
         [ObservableProperty]
-        private string gatewayIp;
+        private PhysicalAddress localMac;
 
         [ObservableProperty]
-        private string gatewayMac;
+        private IPAddress gatewayIp;
 
-        partial void OnSelectNetCardChanged(string value)
+        [ObservableProperty]
+        private PhysicalAddress gatewayMac;
+
+        partial void OnSelectNetStrChanged(string value)
         {
-            var selectNet = LibPcapLiveDeviceList.Instance.FirstOrDefault(x => x.Name == value);
-            if (selectNet != null)
+            selectNetCard = LibPcapLiveDeviceList.Instance.FirstOrDefault(x => x.Interface.FriendlyName == value);
+            if (selectNetCard != null)
             {
-                var localip = selectNet.Addresses.FirstOrDefault(x => x.Addr.type == Sockaddr.AddressTypes.AF_INET_AF_INET6
+                var localip = selectNetCard.Addresses.FirstOrDefault(x => x.Addr.type == Sockaddr.AddressTypes.AF_INET_AF_INET6
                                         && x.Addr.ipAddress.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
                 if (localip != null)
                 {
-                    LocalIP = localip.Addr.ipAddress.ToString();
+                    LocalIP = localip.Addr.ipAddress;
                 }
-                LocalMac = selectNet.MacAddress.ToString();
+                LocalMac = selectNetCard.MacAddress;
 
-                GatewayMac = selectNet.Interface.GatewayAddresses.FirstOrDefault(x => x.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).ToString();
+                var gatewayIp = selectNetCard.Interface.GatewayAddresses.FirstOrDefault(x => x.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
+                if (gatewayIp == null)
+                {
+                    GatewayIp = null;
+                    return;
+                }
+                GatewayIp = gatewayIp;
+
+                GatewayMac = GetGatewayMac();
+            }
+        }
+
+        private PhysicalAddress GetGatewayMac()
+        {
+            var request = BuildArpRequest();
+            string arpFilter = "arp and ether dst " + LocalMac.ToString();
+            selectNetCard.Open(DeviceModes.Promiscuous, 20);
+            selectNetCard.Filter = arpFilter;
+            var lastRequestTime = DateTimeOffset.MinValue;
+            var requestInterval = TimeSpan.FromMilliseconds(200);
+
+            ArpPacket arpPacket = null;
+            var timeoutDateTime = DateTimeOffset.Now + _timeout;
+
+            while(DateTimeOffset.Now < timeoutDateTime)
+            {
+                if (requestInterval < (DateTimeOffset.Now - lastRequestTime))
+                {
+                    selectNetCard.SendPacket(request);
+                    lastRequestTime = DateTimeOffset.Now;
+                }
+
+                if(selectNetCard.GetNextPacket(out var packet) > 0)
+                {
+                    if(packet.Device.LinkType != LinkLayers.Ethernet)
+                    {
+                        continue;
+                    }
+
+                    var pack = Packet.ParsePacket(packet.Device.LinkType,packet.Data.ToArray());
+                    arpPacket = pack.Extract<ArpPacket>();
+                    if(arpPacket == null )
+                    {
+                        continue;
+                    }
+
+                    if (arpPacket.SenderProtocolAddress.Equals(GatewayIp))
+                    {
+                        break;
+                    }
+                }
             }
 
+            selectNetCard.Close();
+            return arpPacket?.SenderHardwareAddress;
+        }
+
+        private Packet BuildArpRequest()
+        {
+            var ethernetPacket = new EthernetPacket(LocalMac, PhysicalAddress.Parse("FF-FF-FF-FF-FF-FF"), EthernetType.Arp);
+            var arpPacket = new ArpPacket(ArpOperation.Request, PhysicalAddress.Parse("00-00-00-00-00-00"), GatewayIp, LocalMac, LocalIP);
+            ethernetPacket.PayloadPacket = arpPacket;
+
+            return ethernetPacket;
         }
 
         public static IReadOnlyCollection<string> GetLibPcapLiveDevices()
         {
-            return LibPcapLiveDeviceList.Instance.Select(x => x.Name).ToList();
+            return LibPcapLiveDeviceList.Instance.Select(x => x.Interface.FriendlyName).ToList();
         }
     }
 }
