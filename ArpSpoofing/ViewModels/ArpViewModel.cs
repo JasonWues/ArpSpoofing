@@ -1,10 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
 using System.Net;
 
 namespace ArpSpoofing.ViewModels
 {
-    public partial class ArpViewModel : ObservableRecipient
+    public partial class ArpViewModel : ObservableObject
     {
         [ObservableProperty]
         private string startScanIp;
@@ -14,23 +15,12 @@ namespace ArpSpoofing.ViewModels
 
         public ArpViewModel()
         {
-            IsActive = true;
-        }
-
-        protected override void OnActivated()
-        {
-            base.OnActivated();
-            WeakReferenceMessenger.Default.Register<IPAddress, string>(this, "NetCardChange", (v, message) =>
+            var response = WeakReferenceMessenger.Default.Send<RequestMessage<string>, string>("RequestScanIp");
+            if (response.HasReceivedResponse)
             {
-                var z = message.ToString();
-                StartScanIp = z;
-            });
-        }
+                StartScanIp = response.Response;
+            }
 
-        protected override void OnDeactivated()
-        {
-            base.OnDeactivated();
-            WeakReferenceMessenger.Default.Unregister<ArpViewModel>(this);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.UI.Xaml.Controls;
 using PacketDotNet;
 using SharpPcap;
@@ -14,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace ArpSpoofing.ViewModels
 {
-    public partial class SettingViewModel : ObservableObject
+    public partial class SettingViewModel : ObservableRecipient
     {
         private readonly TimeSpan _timeout = new(0, 0, 2);
 
@@ -50,6 +51,19 @@ namespace ArpSpoofing.ViewModels
             }
         }
 
+        public SettingViewModel()
+        {
+            IsActive = true;
+        }
+
+        protected override void OnActivated()
+        {
+            WeakReferenceMessenger.Default.Register<SettingViewModel, RequestMessage<string>, string>(this, "RequestScanIp", (v, r) =>
+            {
+                r.Reply(v?.GatewayIp.ToString());
+            });
+        }
+
         partial void OnSelectNetStrChanged(string value)
         {
             selectNetCard = LibPcapLiveDeviceList.Instance.FirstOrDefault(x => x.Interface.FriendlyName == value);
@@ -73,7 +87,7 @@ namespace ArpSpoofing.ViewModels
 
                 GatewayMac = GetGatewayMac();
 
-                WeakReferenceMessenger.Default.Send(GatewayIp, "NetCardChange");
+
             }
         }
 
