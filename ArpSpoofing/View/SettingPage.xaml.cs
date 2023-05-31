@@ -1,5 +1,6 @@
 using ArpSpoofing.ViewModels;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Navigation;
 
 namespace ArpSpoofing.View
 {
@@ -9,9 +10,14 @@ namespace ArpSpoofing.View
         public SettingPage()
         {
             InitializeComponent();
-            ViewModel = new SettingViewModel();
         }
 
         public SettingViewModel ViewModel { get; set; }
+
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            ViewModel ??= new SettingViewModel();
+            base.OnNavigatedTo(e);
+        }
     }
 }

@@ -9,7 +9,8 @@
 
     <NavigationView x:Name="MainNav" 
                     SelectionChanged="MainNav_SelectionChanged"
-                    Loaded="MainNav_Loaded">
+                    Loaded="MainNav_Loaded"
+                    >
         <NavigationView.MenuItems>
             <NavigationViewItem Icon="Play" Content="Arp" Tag="Arp" />
             <NavigationViewItem Icon="Save" Content="Menu Item2" Tag="SamplePage2" />

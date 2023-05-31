@@ -1,12 +1,12 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.UI.Xaml.Controls;
 using PacketDotNet;
 using SharpPcap;
 using SharpPcap.LibPcap;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -72,6 +72,8 @@ namespace ArpSpoofing.ViewModels
                 GatewayIp = gatewayIp;
 
                 GatewayMac = GetGatewayMac();
+
+                WeakReferenceMessenger.Default.Send(GatewayIp, "NetCardChange");
             }
         }
 

@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <Page
     x:Class="ArpSpoofing.View.ArpPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -11,8 +10,29 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="4*"/>
-            <ColumnDefinition Width="4*"/>
+            <ColumnDefinition Width="5*"/>
+            <ColumnDefinition Width="5*"/>
         </Grid.ColumnDefinitions>
+
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Text="Arp" Grid.Row="0" Style="{StaticResource TitleTextBlockStyle}" Foreground="{StaticResource TextFillColorPrimaryBrush}" Margin="12"/>
+
+            <StackPanel Orientation="Vertical" Grid.Row="1" Margin="12,0" Spacing="12" HorizontalAlignment="Left">
+                <TextBox Header="起始IP：" Width="200" Text="{x:Bind ViewModel.StartScanIp,Mode=OneWay}"/>
+                <TextBox Header="结束IP：" Width="200" Text="{x:Bind ViewModel.EndScanIp,Mode=OneWay}"/>
+            </StackPanel>
+
+            <Button Content="Start Scan" Grid.Row="2" Margin="12"/>
+    
+            
+        </Grid>
     </Grid>
 </Page>

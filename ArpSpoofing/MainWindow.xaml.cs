@@ -33,6 +33,7 @@ namespace ArpSpoofing
         private void MainNav_Loaded(object sender, RoutedEventArgs e)
         {
             MainNav.SelectedItem = MainNav.MenuItems[0];
+
         }
     }
 }

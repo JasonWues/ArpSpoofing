@@ -9,7 +9,8 @@
     xmlns:Core="using:Microsoft.Xaml.Interactions.Core"
     xmlns:Interactivity="using:Microsoft.Xaml.Interactivity"
     mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    NavigationCacheMode="Enabled">
 
     <Page.Resources>
         <x:Double x:Key="SettingsCardSpacing">3</x:Double>
@@ -22,6 +23,8 @@
     </Interactivity:Interaction.Behaviors>
 
     <StackPanel Spacing="{StaticResource SettingsCardSpacing}">
+        <TextBlock Text="Setting" Style="{StaticResource TitleTextBlockStyle}" Foreground="{StaticResource TextFillColorPrimaryBrush}" Margin="12"/>
+
         <labs:SettingsExpander Header="网卡选择">
             <labs:SettingsExpander.HeaderIcon>
                 <FontIcon Glyph="&#xF211;" />
@@ -30,7 +33,7 @@
                           SelectedItem="{x:Bind ViewModel.SelectNetStr,Mode=TwoWay}"/>
             <labs:SettingsExpander.Items>
                 <labs:SettingsCard ContentAlignment="Left">
-                    <StackPanel Orientation="Horizontal" Spacing="30">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
                         <StackPanel Spacing="2">
                             <TextBlock Text="本机IP" Style="{StaticResource BodyTextBlockStyle}" Foreground="{StaticResource TextFillColorPrimaryBrush}"/>
                             <TextBlock Text="本机MAC" Style="{StaticResource BodyTextBlockStyle}" Foreground="{StaticResource TextFillColorPrimaryBrush}"/>
