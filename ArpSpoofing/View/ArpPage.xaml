@@ -5,7 +5,9 @@
     xmlns:local="using:ArpSpoofing.View"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-    xmlns:entity="using:ArpSpoofing.Entity"
+    xmlns:entity="using:ArpSpoofing.Entity" 
+    xmlns:viewmodels="using:ArpSpoofing.ViewModels" 
+    d:DataContext="{d:DesignInstance Type=viewmodels:ArpViewModel}"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
@@ -32,7 +34,7 @@
 
             <Button Content="Start Scan" Grid.Row="2" Margin="12" Command="{x:Bind ViewModel.ScanCommand}"/>
 
-            <ListView Header="IP列表" Grid.Row="3" 
+            <ListView x:Name="IPList" Header="IP列表" Grid.Row="3" 
                       ItemsSource="{x:Bind ViewModel.Computers,Mode=OneWay}"
                       Margin="12,0"
                       SelectionMode="Single"
@@ -40,13 +42,24 @@
                       >
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="entity:Computer">
-                        <StackPanel Orientation="Horizontal" Spacing="3">
-                            <TextBlock Text="{x:Bind IPAddress}"/>
-                            <TextBlock Text="{x:Bind MacAddress}"/>
+                        <StackPanel Orientation="Horizontal" Spacing="3" Margin="0,0,0,0">
+                            <TextBlock VerticalAlignment="Center" Text="{x:Bind IPAddress}"/>
+                            <TextBlock VerticalAlignment="Center" Text="{x:Bind MacAddress}"/>
+                            <Button>
+                                <FontIcon Glyph="&#xE724;" />
+                            </Button>
                         </StackPanel>
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
         </Grid>
+
+        <ListView Header="攻击列表" Grid.Column="1" Margin="12" ItemsSource="{x:Bind ViewModel.ArpAttackComputers}">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
     </Grid>
 </Page>

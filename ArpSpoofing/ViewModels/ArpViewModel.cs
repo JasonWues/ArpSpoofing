@@ -15,12 +15,21 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ArpSpoofing.ViewModels
 {
     public partial class ArpViewModel : ObservableObject
     {
+        private readonly DispatcherQueue dispatcherQueue = DispatcherQueue.GetForCurrentThread();
+
+        private CancellationTokenSource _cancellationTokenSource; //取消scan的token
+
+        private LibPcapLiveDevice libPcapLiveDevice;
+
+        private PcapAddress localip;
+
         [ObservableProperty]
         private string startScanIp;
 
@@ -30,16 +39,13 @@ namespace ArpSpoofing.ViewModels
         [ObservableProperty]
         private ObservableCollection<Computer> computers = new();
 
-        private readonly DispatcherQueue dispatcherQueue = DispatcherQueue.GetForCurrentThread();
-
-        private LibPcapLiveDevice libPcapLiveDevice;
-
-        private PcapAddress localip;
+        [ObservableProperty]
+        private ObservableCollection<ArpAttackComputer> arpAttackComputers = new();
 
         public ArpViewModel()
         {
             var response = WeakReferenceMessenger.Default.Send<RequestMessage<LibPcapLiveDevice>, string>("RequestScanIp");
-            if (response.HasReceivedResponse)
+            if (response.HasReceivedResponse && response.Response != null)
             {
                 libPcapLiveDevice = response.Response;
 
@@ -52,10 +58,11 @@ namespace ArpSpoofing.ViewModels
                 endIpBytes[^1] = 254;
                 EndScanIp = new IPAddress(endIpBytes).ToString();
             }
+            _cancellationTokenSource = new CancellationTokenSource();
         }
 
         [RelayCommand]
-        public async Task ScanAsync()
+        private async Task ScanAsync()
         {
             if (!IPAddress.TryParse(StartScanIp, out var startIp) || !IPAddress.TryParse(EndScanIp, out var endIp))
             {
@@ -71,6 +78,12 @@ namespace ArpSpoofing.ViewModels
             }
 
             await ScanLanAsync(startIp, endIp);
+        }
+
+        [RelayCommand]
+        private void AttackTargetComputer()
+        {
+
         }
 
         public async Task ScanLanAsync(IPAddress startIp, IPAddress endIp)
@@ -105,13 +118,21 @@ namespace ArpSpoofing.ViewModels
             {
                 for (var i = 0;i < arpPackets.Length - 1; i++)
                 {
+                    if (_cancellationTokenSource.IsCancellationRequested)
+                    {
+                        break;
+                    }
                     var lastRequestTime = DateTimeOffset.MinValue;
                     var requestInterval = TimeSpan.FromMilliseconds(200);
                     var timeoutDateTime = DateTimeOffset.Now + new TimeSpan(0, 0, 2);
 
-
                     while (DateTimeOffset.Now < timeoutDateTime)
                     {
+                        if (_cancellationTokenSource.IsCancellationRequested)
+                        {
+                            break;
+                        }
+
                         if (requestInterval < (DateTime.Now - lastRequestTime))
                         {
                             libPcapLiveDevice.SendPacket(arpPackets[i]);
@@ -163,9 +184,10 @@ namespace ArpSpoofing.ViewModels
                     };
 
                     await dialog.ShowAsync();
+                    _cancellationTokenSource = new();
                 });
 
-            });
+            },_cancellationTokenSource.Token);
 
             await task;
         }

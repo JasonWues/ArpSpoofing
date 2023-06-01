@@ -5,7 +5,7 @@ using ArpSpoofing.View;
 
 namespace ArpSpoofing
 {
-    public sealed partial class MainWindow : Window
+    public sealed partial class MainWindow
     {
         public MainWindow()
         {
