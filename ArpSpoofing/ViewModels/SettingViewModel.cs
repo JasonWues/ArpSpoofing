@@ -17,8 +17,6 @@ namespace ArpSpoofing.ViewModels
 {
     public partial class SettingViewModel : ObservableRecipient
     {
-        private readonly TimeSpan _timeout = new(0, 0, 2);
-
         [ObservableProperty]
         private string selectNetStr;
 
@@ -41,7 +39,7 @@ namespace ArpSpoofing.ViewModels
         {
             if (LibPcapLiveDeviceList.Instance.Count < 0)
             {
-                ContentDialog dialog = new ContentDialog();
+                ContentDialog dialog = new();
 
                 dialog.Title = "错误";
                 dialog.Content = "网卡数量不足";
@@ -58,9 +56,9 @@ namespace ArpSpoofing.ViewModels
 
         protected override void OnActivated()
         {
-            WeakReferenceMessenger.Default.Register<SettingViewModel, RequestMessage<string>, string>(this, "RequestScanIp", (v, r) =>
+            WeakReferenceMessenger.Default.Register<SettingViewModel, RequestMessage<LibPcapLiveDevice>, string>(this, "RequestScanIp", (v, r) =>
             {
-                r.Reply(v?.GatewayIp.ToString());
+                r.Reply(v?.selectNetCard);
             });
         }
 
@@ -93,7 +91,7 @@ namespace ArpSpoofing.ViewModels
 
         private PhysicalAddress GetGatewayMac()
         {
-            var request = BuildArpRequest();
+            var request = Util.NetProtocolWrapper.BuildArpRequest(GatewayIp, LocalIP, LocalMac);
             string arpFilter = "arp and ether dst " + LocalMac.ToString();
             selectNetCard.Open(DeviceModes.Promiscuous, 20);
             selectNetCard.Filter = arpFilter;
@@ -101,7 +99,7 @@ namespace ArpSpoofing.ViewModels
             var requestInterval = TimeSpan.FromMilliseconds(200);
 
             ArpPacket arpPacket = null;
-            var timeoutDateTime = DateTimeOffset.Now + _timeout;
+            var timeoutDateTime = DateTimeOffset.Now + new TimeSpan(0, 0, 2);
 
             while (DateTimeOffset.Now < timeoutDateTime)
             {
@@ -136,14 +134,6 @@ namespace ArpSpoofing.ViewModels
             return arpPacket?.SenderHardwareAddress;
         }
 
-        private Packet BuildArpRequest()
-        {
-            var ethernetPacket = new EthernetPacket(LocalMac, PhysicalAddress.Parse("FF-FF-FF-FF-FF-FF"), EthernetType.Arp);
-            var arpPacket = new ArpPacket(ArpOperation.Request, PhysicalAddress.Parse("00-00-00-00-00-00"), GatewayIp, LocalMac, LocalIP);
-            ethernetPacket.PayloadPacket = arpPacket;
-
-            return ethernetPacket;
-        }
 
         public IReadOnlyCollection<string> GetLibPcapLiveDevices()
         {

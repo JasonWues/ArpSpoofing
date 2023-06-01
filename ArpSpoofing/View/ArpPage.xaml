@@ -4,7 +4,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:ArpSpoofing.View"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    xmlns:entity="using:ArpSpoofing.Entity"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
@@ -20,19 +21,32 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <TextBlock Text="Arp" Grid.Row="0" Style="{StaticResource TitleTextBlockStyle}" Foreground="{StaticResource TextFillColorPrimaryBrush}" Margin="12"/>
 
             <StackPanel Orientation="Vertical" Grid.Row="1" Margin="12,0" Spacing="12" HorizontalAlignment="Left">
-                <TextBox Header="起始IP：" Width="200" Text="{x:Bind ViewModel.StartScanIp,Mode=OneWay}"/>
-                <TextBox Header="结束IP：" Width="200" Text="{x:Bind ViewModel.EndScanIp,Mode=OneWay}"/>
+                <TextBox Header="起始IP：" Width="200" Text="{x:Bind ViewModel.StartScanIp,Mode=TwoWay}"/>
+                <TextBox Header="结束IP：" Width="200" Text="{x:Bind ViewModel.EndScanIp,Mode=TwoWay}"/>
             </StackPanel>
 
-            <Button Content="Start Scan" Grid.Row="2" Margin="12"/>
-    
-            
+            <Button Content="Start Scan" Grid.Row="2" Margin="12" Command="{x:Bind ViewModel.ScanCommand}"/>
+
+            <ListView Header="IP列表" Grid.Row="3" 
+                      ItemsSource="{x:Bind ViewModel.Computers,Mode=OneWay}"
+                      Margin="12,0"
+                      SelectionMode="Single"
+                      IsItemClickEnabled="False"
+                      >
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="entity:Computer">
+                        <StackPanel Orientation="Horizontal" Spacing="3">
+                            <TextBlock Text="{x:Bind IPAddress}"/>
+                            <TextBlock Text="{x:Bind MacAddress}"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
         </Grid>
     </Grid>
 </Page>
