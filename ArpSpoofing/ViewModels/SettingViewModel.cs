@@ -23,6 +23,9 @@ namespace ArpSpoofing.ViewModels
         private LibPcapLiveDevice selectNetCard;
 
         [ObservableProperty]
+        private int requestTimeOutTime;
+
+        [ObservableProperty]
         private IPAddress localIP;
 
         [ObservableProperty]
@@ -44,6 +47,7 @@ namespace ArpSpoofing.ViewModels
                 dialog.Title = "错误";
                 dialog.Content = "网卡数量不足";
                 dialog.XamlRoot = App.MainRoot.XamlRoot;
+                dialog.PrimaryButtonText = "OK";
 
                 await dialog.ShowAsync();
             }

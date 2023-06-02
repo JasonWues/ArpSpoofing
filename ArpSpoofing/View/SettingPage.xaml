@@ -25,6 +25,9 @@
     <StackPanel Spacing="{StaticResource SettingsCardSpacing}">
         <TextBlock Text="Setting" Style="{StaticResource TitleTextBlockStyle}" Foreground="{StaticResource TextFillColorPrimaryBrush}" Margin="12"/>
 
+        <labs:SettingsCard Header="过期时间">
+            <TextBox Text="{x:Bind ViewModel.RequestTimeOutTime,Mode=TwoWay}"/>
+        </labs:SettingsCard>
         <labs:SettingsExpander Header="网卡选择">
             <labs:SettingsExpander.HeaderIcon>
                 <FontIcon Glyph="&#xF211;" />

@@ -6,11 +6,11 @@ using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Data;
 using PacketDotNet;
 using SharpPcap;
 using SharpPcap.LibPcap;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -43,6 +43,7 @@ namespace ArpSpoofing.ViewModels
         [ObservableProperty]
         private ObservableCollection<ArpAttackComputer> arpAttackComputers = new();
 
+
         public ArpViewModel()
         {
             var response = WeakReferenceMessenger.Default.Send<RequestMessage<LibPcapLiveDevice>, string>("RequestScanIp");
@@ -71,7 +72,8 @@ namespace ArpSpoofing.ViewModels
                 {
                     Title = "错误",
                     Content = "请输入正确的IP地址",
-                    XamlRoot = App.MainRoot.XamlRoot
+                    XamlRoot = App.MainRoot.XamlRoot,
+                    PrimaryButtonText = "OK",
                 };
 
                 await dialog.ShowAsync();
@@ -84,8 +86,9 @@ namespace ArpSpoofing.ViewModels
         [RelayCommand]
         private void AttackTargetComputer()
         {
-
+            var z = Computers.Where(x => x.IsSelect).ToList();
         }
+
 
         public async Task ScanLanAsync(IPAddress startIp, IPAddress endIp)
         {
@@ -115,13 +118,15 @@ namespace ArpSpoofing.ViewModels
             libPcapLiveDevice.Open(DeviceModes.Promiscuous, 20);
             libPcapLiveDevice.Filter = arpFilter;
 
+            Computers.Clear();
+
             var task = Task.Run(() =>
             {
-                for (var i = 0;i < arpPackets.Length - 1; i++)
+                Parallel.ForEach(arpPackets, (arpPack,state,i) =>
                 {
                     if (_cancellationTokenSource.IsCancellationRequested)
                     {
-                        break;
+                        state.Break();
                     }
                     var lastRequestTime = DateTimeOffset.MinValue;
                     var requestInterval = TimeSpan.FromMilliseconds(200);
@@ -134,9 +139,9 @@ namespace ArpSpoofing.ViewModels
                             break;
                         }
 
-                        if (requestInterval < (DateTime.Now - lastRequestTime))
+                        if (requestInterval < (DateTimeOffset.Now - lastRequestTime))
                         {
-                            libPcapLiveDevice.SendPacket(arpPackets[i]);
+                            libPcapLiveDevice.SendPacket(arpPack);
                             lastRequestTime = DateTimeOffset.Now;
                         }
 
@@ -156,7 +161,7 @@ namespace ArpSpoofing.ViewModels
                             }
 
                             //回复的arp包并且是我们请求的ip地址
-                            if (arpPacket.SenderProtocolAddress.Equals(targetIPList[i]))
+                            if (arpPacket.SenderProtocolAddress.Equals(targetIPList[(int)i]))
                             {
                                 dispatcherQueue.TryEnqueue(() =>
                                 {
@@ -164,6 +169,7 @@ namespace ArpSpoofing.ViewModels
                                     {
                                         IPAddress = arpPacket.SenderProtocolAddress.ToString(),
                                         MacAddress = PhysicalToString(arpPacket.SenderHardwareAddress),
+                                        Sort = arpPacket.SenderProtocolAddress.GetAddressBytes()[^1],
                                     });
                                 });
 
@@ -171,7 +177,7 @@ namespace ArpSpoofing.ViewModels
                             }
                         }
                     }
-                }
+                });
 
                 libPcapLiveDevice.Close();
 
@@ -181,16 +187,19 @@ namespace ArpSpoofing.ViewModels
                     {
                         Title = "完成",
                         Content = "扫描完成",
-                        XamlRoot = App.MainRoot.XamlRoot
+                        XamlRoot = App.MainRoot.XamlRoot,
+                        PrimaryButtonText = "OK",
                     };
 
                     await dialog.ShowAsync();
                     _cancellationTokenSource = new();
                 });
 
-            },_cancellationTokenSource.Token);
+            }, _cancellationTokenSource.Token);
 
             await task;
+
+            var zs = Computers.OrderBy(x => x.Sort);
         }
 
         public string PhysicalToString(PhysicalAddress macAddress)

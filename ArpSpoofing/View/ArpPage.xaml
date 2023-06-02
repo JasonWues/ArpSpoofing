@@ -6,8 +6,6 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
     xmlns:entity="using:ArpSpoofing.Entity" 
-    xmlns:Interactivity="using:Microsoft.Xaml.Interactivity" 
-    xmlns:Core="using:Microsoft.Xaml.Interactions.Core"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
@@ -19,20 +17,24 @@
 
         <Grid Grid.Column="0">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="6*"/>
             </Grid.RowDefinitions>
 
             <TextBlock Text="Arp" Grid.Row="0" Style="{StaticResource TitleTextBlockStyle}" Foreground="{StaticResource TextFillColorPrimaryBrush}" Margin="12"/>
 
-            <StackPanel Orientation="Vertical" Grid.Row="1" Margin="12,0" Spacing="12" HorizontalAlignment="Left">
+            <StackPanel Orientation="Vertical" Grid.Row="1" Margin="12" Spacing="12" HorizontalAlignment="Left">
                 <TextBox Header="起始IP：" Width="200" Text="{x:Bind ViewModel.StartScanIp,Mode=TwoWay}"/>
                 <TextBox Header="结束IP：" Width="200" Text="{x:Bind ViewModel.EndScanIp,Mode=TwoWay}"/>
             </StackPanel>
 
-            <Button Content="Start Scan" Grid.Row="2" Margin="12" Command="{x:Bind ViewModel.ScanCommand}"/>
+            <StackPanel Orientation="Horizontal" Margin="12" Grid.Row="2" Spacing="3">
+                <Button Content="Start Scan" Command="{x:Bind ViewModel.ScanCommand}"/>
+                <Button Content="Attack Target" Command="{x:Bind ViewModel.AttackTargetComputerCommand}"/>
+            </StackPanel>
+
 
             <ListView x:Name="IPList" Header="IP列表" Grid.Row="3" 
                       ItemsSource="{x:Bind ViewModel.Computers,Mode=OneWay}"
