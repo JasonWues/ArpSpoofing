@@ -12,5 +12,6 @@ namespace ArpSpoofing.View
         }
 
         public ArpViewModel ViewModel { get; set; }
+
     }
 }
