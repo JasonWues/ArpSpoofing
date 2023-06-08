@@ -14,5 +14,13 @@ namespace ArpSpoofing.Util
 
             return ethernetPacket;
         }
+
+        public static Packet BuildArpResponse(IPAddress targetIp, PhysicalAddress targetMac, IPAddress senderIP, PhysicalAddress senderMac)
+        {
+            var ethernetPacket = new EthernetPacket(senderMac, targetMac, EthernetType.Arp);
+            var arpPacket = new ArpPacket(ArpOperation.Response, targetMac, targetIp, senderMac, senderIP);
+            ethernetPacket.PayloadPacket = arpPacket;
+            return ethernetPacket;
+        }
     }
 }
